@@ -1,0 +1,6 @@
+@DesafioBackendSprint3_GabrielVinicius_HostAddress = http://localhost:5211
+
+GET {{DesafioBackendSprint3_GabrielVinicius_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
