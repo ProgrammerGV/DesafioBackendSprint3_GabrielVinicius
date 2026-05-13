@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Bank - Cadastro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+
+    <div class="card p-5 shadow-sm border-0 border-top border-success border-4" style="max-width: 450px; width: 100%;">
+        <h3 class="text-center text-success mb-2 fw-bold">Abra sua conta</h3>
+        <p class="text-center text-muted mb-4 small">Junte-se ao New Bank hoje mesmo.</p>
+
+        <form id="formRegistro">
+            <div class="mb-3">
+                <label class="form-label small text-muted">Nome Completo</label>
+                <input type="text" id="nome" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">Nome de Usuário (Login)</label>
+                <input type="text" id="usuario" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">CPF</label>
+                <input type="text" id="cpf" class="form-control" placeholder="000.000.000-00" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">Qual conta deseja abrir?</label>
+                <select id="tipoConta" class="form-select">
+                    <option value="1">Conta Corrente</option>
+                    <option value="2">Conta Poupança</option>
+                    <option value="3">Conta Empresarial</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small text-muted">Crie uma Senha</label>
+                <input type="password" id="senha" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100 fw-bold mb-3">Concluir Cadastro</button>
+        </form>
+
+        <div class="text-center mt-2">
+            <small class="text-muted">Já tem uma conta? <a href="index.html" class="text-decoration-none">Faça login</a></small>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('formRegistro').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+            const cpf = document.getElementById('cpf').value;
+            const tipoContaInicial = document.getElementById('tipoConta').value;
+
+            try {
+                const response = await fetch('http://localhost:5211/api/Usuarios/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, usuario, senha, cpf, tipoContaInicial })
+                });
+
+                if (response.ok) {
+                    alert(`Bem-vindo(a) ao New Bank, ${nome}! Cadastro realizado no banco de dados com sucesso.`);
+                    window.location.href = 'index.html';
+                } else {
+                    const erro = await response.text();
+                    alert(`Ops: ${erro}`);
+                }
+            } catch (error) {
+                alert('Erro de conexão com o servidor.');
+            }
+        });
+    </script>
+</body>
+</html>

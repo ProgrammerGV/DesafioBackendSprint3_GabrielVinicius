@@ -1,5 +1,7 @@
 ﻿namespace DesafioBackendSprint3_GabrielVinicius.Models;
+
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization; // Necessário para evitar loop infinito ao listar dados
 
 public abstract class ContaBancaria : ITransacao
 {
@@ -9,13 +11,14 @@ public abstract class ContaBancaria : ITransacao
     public decimal Saldo { get; protected set; }
     public string TipoConta { get; protected set; }
 
-    public int CountCorrente { get; private set; }
-    public int CountPoupanca { get; private set; }
-    public int CountEmpresarial { get; private set; }
+    public int UsuarioId { get; set; }
+
+    [JsonIgnore] // Impede que o C# tente listar o Usuário -> Conta -> Usuário infinitamente
+    public Usuario? Usuario { get; set; }
 
     protected ContaBancaria(int numeroConta, string titular, decimal saldoInicial, string tipoConta)
     {
-        NumeroConta = numeroConta;
+        NumeroConta = numeroConta; 
         Titular = titular;
         Saldo = saldoInicial;
         TipoConta = tipoConta;
@@ -26,30 +29,10 @@ public abstract class ContaBancaria : ITransacao
         Titular = string.Empty;
         TipoConta = string.Empty;
     }
-    public void IncrementarContador(string tipoConta)
-    {
-        if (tipoConta == "1") CountCorrente++;
-        else if (tipoConta == "2") CountPoupanca++;
-        else if (tipoConta == "3") CountEmpresarial++;
-    }
-
-    public int ObterContador(string tipoConta)
-    {
-        return tipoConta switch
-        {
-            "1" => CountCorrente,
-            "2" => CountPoupanca,
-            "3" => CountEmpresarial,
-            _ => 0
-        };
-    }
 
     protected virtual bool PodeSacar(decimal valor)
     {
-        if (valor <= 0)
-        {
-            return false;
-        }
+        if (valor <= 0) return false;
         return Saldo >= valor;
     }
 

@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Bank - Painel Administrativo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            color: #dc3545 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4 py-3 border-bottom border-danger border-3">
+        <div class="container">
+            <a class="navbar-brand" href="#">New Bank | ADMINISTRAÇÃO</a>
+            <div class="d-flex align-items-center">
+                <span class="me-3 fw-medium text-secondary" id="boasVindasAdmin">Olá, Gestor...</span>
+                <button class="btn btn-outline-dark btn-sm fw-bold" onclick="fazerLogout()">Sair</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3 class="mb-4">Gestão de Contas Bancárias</h3>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 text-center align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nº da Conta</th>
+                                <th>Titular</th>
+                                <th>CPF</th>
+                                <th>Tipo de Conta</th>
+                                <th>Saldo (R$)</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaContas">
+                            <tr>
+                                <td colspan="6" class="py-4 text-muted">Carregando lista de clientes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold text-dark">Editar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editNumeroConta">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Nome do Titular</label>
+                        <input type="text" id="editNome" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">CPF</label>
+                        <input type="text" id="editCpf" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning fw-bold text-dark" onclick="salvarEdicao()">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('tokenJwt');
+        if (!token) window.location.href = 'index.html';
+
+        function decodificarToken(jwt) {
+            try {
+                return JSON.parse(decodeURIComponent(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+            } catch (e) { return null; }
+        }
+
+        const dadosToken = decodificarToken(token);
+        if (dadosToken) {
+            const nome = dadosToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Gestor";
+
+            const role = dadosToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+                || dadosToken["role"]
+                || dadosToken.Role;
+
+            if (role !== "Admin") {
+                alert("Acesso Negado! Esta área é exclusiva para Administradores.");
+                window.location.href = 'dashboard.html';
+            }
+
+            document.getElementById('boasVindasAdmin').innerText = `Olá, Admin ${nome}`;
+        }
+
+        async function carregarTodasAsContas() {
+            try {
+                const response = await fetch('http://localhost:5211/api/Contas/todas', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const contas = await response.json();
+                    const tbody = document.getElementById('tabelaContas');
+                    tbody.innerHTML = '';
+
+                    if (contas.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-muted py-3">Nenhuma conta encontrada no banco de dados.</td></tr>`;
+                        return;
+                    }
+
+                    contas.forEach(conta => {
+                        const tr = document.createElement('tr');
+                        const saldoFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(conta.saldo);
+
+                        tr.innerHTML = `
+                                    <td class="fw-bold">${conta.numeroConta}</td>
+                                    <td>${conta.titular}</td>
+                                    <td>${conta.cpf}</td>
+                                    <td><span class="badge bg-secondary">${conta.tipoConta}</span></td>
+                                    <td class="text-success fw-bold">${saldoFormatado}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning fw-bold me-2" onclick="abrirModalEdicao(${conta.numeroConta}, '${conta.titular}', '${conta.cpf}')">Editar</button>
+                                        <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deletarConta(${conta.numeroConta})">Excluir</button>
+                                    </td>
+                                `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    alert("Erro ao carregar os dados. Verifique suas permissões.");
+                }
+            } catch (error) {
+                console.error("Erro na conexão:", error);
+            }
+        }
+
+        carregarTodasAsContas();
+
+        let modalEditarInstancia;
+
+        function abrirModalEdicao(numeroConta, nomeAtual, cpfAtual) {
+            document.getElementById('editNumeroConta').value = numeroConta;
+            document.getElementById('editNome').value = nomeAtual;
+            document.getElementById('editCpf').value = cpfAtual;
+
+            if (!modalEditarInstancia) {
+                modalEditarInstancia = new bootstrap.Modal(document.getElementById('modalEditar'));
+            }
+            modalEditarInstancia.show();
+        }
+
+        async function salvarEdicao() {
+            const numeroConta = document.getElementById('editNumeroConta').value;
+            const nome = document.getElementById('editNome').value;
+            const cpf = document.getElementById('editCpf').value;
+
+            try {
+                const response = await fetch(`http://localhost:5211/api/Contas/${numeroConta}/titular`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nome: nome, cpf: cpf })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.mensagem);
+                    modalEditarInstancia.hide();
+                    carregarTodasAsContas(); 
+                } else {
+                    alert("Erro ao atualizar a conta.");
+                }
+            } catch (error) {
+                console.error("Erro na conexão:", error);
+                alert("Erro de comunicação com o servidor.");
+            }
+        }
+
+        async function deletarConta(id) {
+            if (confirm(`Tem certeza que deseja EXCLUIR DEFINITIVAMENTE a conta nº ${id}?`)) {
+                try {
+                    const response = await fetch(`http://localhost:5211/api/Contas/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert("Conta excluída com sucesso!");
+                        carregarTodasAsContas();
+                    } else {
+                        alert("Erro ao excluir a conta.");
+                    }
+                } catch (error) {
+                    console.error("Erro na conexão:", error);
+                    alert("Erro de comunicação com o servidor.");
+                }
+            }
+        }
+
+        function fazerLogout() {
+            localStorage.removeItem('tokenJwt');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

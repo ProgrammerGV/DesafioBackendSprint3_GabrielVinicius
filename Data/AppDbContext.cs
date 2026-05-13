@@ -13,4 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<ContaCorrente> ContasCorrentes { get; set; }
     public DbSet<ContaPoupanca> ContasPoupancas { get; set; }
     public DbSet<ContaEmpresarial> ContasEmpresariais { get; set; }
+
+    public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Transacao> Transacoes { get; set; }
 }
