@@ -7,10 +7,18 @@ O New Bank foi desenvolvido como projeto final da Sprint 3 — Desenvolvimento d
 A aplicação consiste em:
 
 🔹 API REST robusta construída com ASP.NET Core;
+<br/>
 🔹 Integração com banco relacional MySQL utilizando Entity Framework Core;
+<br/>
 🔹 Sistema completo de autenticação e autorização via JWT;
+<br/>
+
 🔹 Interface web dinâmica e responsiva utilizando HTML, CSS, Bootstrap e JavaScript;
+<br/>
+
 🔹 Aplicação dos principais conceitos de Programação Orientada a Objetos (POO) e arquitetura em camadas.
+<br/>
+
 🚀 Tecnologias Utilizadas
 🔧 Back-end
 C# 12
