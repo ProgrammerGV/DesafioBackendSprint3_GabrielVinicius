@@ -1,9 +1,12 @@
+using DesafioBackendSprint3_GabrielVinicius.Data;
+using DesafioBackendSprint3_GabrielVinicius.Interfaces;
+using DesafioBackendSprint3_GabrielVinicius.Repositories;
+using DesafioBackendSprint3_GabrielVinicius.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using DesafioBackendSprint3_GabrielVinicius.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -72,6 +75,13 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IContaRepository, ContaRepository>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IContaService, ContaService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
