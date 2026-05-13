@@ -192,16 +192,6 @@ em seu navegador.
 ✅ Tratamento de Status HTTP
 ✅ Segurança e controle de acesso
 
-📷 Possíveis Melhorias Futuras
-Integração com Docker;
-Deploy em nuvem;
-Sistema de investimentos;
-Geração de relatórios PDF;
-Integração com Open Banking;
-Testes automatizados;
-CI/CD pipeline.
-👨‍💻 Autor
-
 Desenvolvido por Gabriel Vinicius.
 
 ⭐ Considerações Finais
